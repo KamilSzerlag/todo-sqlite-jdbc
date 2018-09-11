@@ -5,8 +5,9 @@ import java.sql.SQLException;
 
 public class Main {
     public static void main(String[] args) {
-        Datasource datasource = new Datasource();
-        datasource.open();
+
+        Datasource.getInstance().open();
+
 
        // datasource.createView();
     /*    datasource.insertUser("Adrian","Lachociagowski");
@@ -25,13 +26,15 @@ public class Main {
         datasource.insertTask("Miuosh","Borycki","Pierdolic to wszystko",false);
         datasource.insertTask("Miuosh","Borycki","Isc, ciagle isc",false);*/
         try {
-            for (Task task: datasource.queryTasks(datasource.queryUser("Miuosh", "Borycki")))
+            for (Task task: Datasource.getInstance().queryTasks(Datasource.getInstance().queryUser("Miuosh", "Borycki")))
                 System.out.println("ID: " + task.get_id() + " Description: " + task.getDescription() + " Task done?: " + task.isTaskDone() + " Create Date " + task.getCreateDate());
         }catch (SQLException e)
         {
             System.out.println(e.getMessage());
         }
-        datasource.close();
+
+
+        Datasource.getInstance().close();
 
     }
 }

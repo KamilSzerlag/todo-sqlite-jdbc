@@ -51,8 +51,18 @@ public class Datasource {
     private PreparedStatement createTaskUserView;
     private PreparedStatement queryUserTasks;
 
+    private static Datasource instance = new Datasource();
+
+    private Datasource(){
+
+    }
+
+    public static Datasource getInstance() {
+        return instance;
+    }
 
     //TODO add connection to database
+    //Open connection with database
     public boolean open() {
         try {
             conn = DriverManager.getConnection(CONNECTION_URL);
@@ -84,8 +94,8 @@ public class Datasource {
             System.out.println("Couldn't close DB " + e.getMessage());
         }
     }
-
     //TODO insertUser
+    //Insert User to Database, returning ID of created user
     public int insertUser(String name, String surname) {
         try {
             insertIntoUser.setString(1, name);
@@ -106,9 +116,9 @@ public class Datasource {
             return 0;
         }
     }
-
     //TODO queryUser
     //TODO return User object, not int!
+    //Query User, returning User object
     public User queryUser(String name, String surname) {
         try {
             User tempUser = new User();
@@ -119,7 +129,7 @@ public class Datasource {
                 tempUser.set_id(userResult.getInt(INDEX_USERS_ID));
                 tempUser.setName(userResult.getString(INDEX_USERS_NAME));
                 tempUser.setSurname(userResult.getString(INDEX_USERS_SURNAME));
-                System.out.println("User founded!\t" + tempUser.get_id() + " " + tempUser.getName() + " " + tempUser.getSurname());
+                System.out.println("User found!\t" + tempUser.get_id() + " " + tempUser.getName() + " " + tempUser.getSurname());
             }
             return tempUser;
         } catch (SQLException e) {
@@ -130,6 +140,7 @@ public class Datasource {
     }
 
     //TODO insertTask
+    //Creating task
     public int insertTask(String name, String surname, String description, Boolean taskDone) {
 
         try {
@@ -155,6 +166,7 @@ public class Datasource {
 
 
     //TODO createView with possibility to updating
+    //Creating View with INNER JOIN USER - TASKS
     public void createView() {
         try {
             createTaskUserView.execute();
@@ -165,6 +177,7 @@ public class Datasource {
 
     //TODO query Tasks for selected user
     //TODO fixing parser for date format
+    //Query user Tasks, returning List with user tasks
     public List<Task> queryTasks(User user) throws SQLException {
         List<Task> tempTasks = new ArrayList<>();
         if (user != null) {
