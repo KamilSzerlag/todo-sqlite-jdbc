@@ -41,7 +41,7 @@ public class Datasource {
     public static final String CREATE_TASK_USER_VIEW = "CREATE VIEW IF NOT EXISTS " + TASK_USER_VIEW + " AS SELECT " + TABLE_TASKS + "." + COLUMN_TASKS_ID + " , " + COLUMN_TASKS_DESCRIPTION + ", " + COLUMN_TASKS_DONE + ", " + COLUMN_TASKS_CREATE_DATE + ", " + TABLE_TASKS + "." + COLUMN_TASK_USER + ", " + TABLE_USERS + "." + COLUMN_USERS_NAME + ", " + TABLE_USERS + "." + COLUMN_USERS_SURNAME + " FROM " + TABLE_TASKS + " INNER JOIN " + TABLE_USERS + " ON " + TABLE_TASKS + "." + COLUMN_TASK_USER + " = " + TABLE_USERS + "." + COLUMN_USERS_ID;
     //+ " WHERE " + TABLE_USERS + "." + COLUMN_USERS_NAME + " = ?  " + " AND " + TABLE_USERS + "." + COLUMN_USERS_SURNAME + " =  ? ";
     public static final String QUERY_USER_TASKS = "SELECT * FROM " + TASK_USER_VIEW + " WHERE " + TASK_USER_VIEW + "." + COLUMN_USERS_NAME + " = ? AND " + TASK_USER_VIEW + "." + COLUMN_USERS_SURNAME + " = ?";
-
+    private static Datasource instance = new Datasource();
     private Connection conn;
     private PreparedStatement createUsersTable;
     private PreparedStatement createTaskTable;
@@ -51,9 +51,7 @@ public class Datasource {
     private PreparedStatement createTaskUserView;
     private PreparedStatement queryUserTasks;
 
-    private static Datasource instance = new Datasource();
-
-    private Datasource(){
+    private Datasource() {
 
     }
 
@@ -82,7 +80,6 @@ public class Datasource {
             e.printStackTrace();
             return false;
         }
-
     }
 
     public void close() {
@@ -94,6 +91,7 @@ public class Datasource {
             System.out.println("Couldn't close DB " + e.getMessage());
         }
     }
+
     //TODO insertUser
     //Insert User to Database, returning ID of created user
     public int insertUser(String name, String surname) {
@@ -116,6 +114,7 @@ public class Datasource {
             return 0;
         }
     }
+
     //TODO queryUser
     //TODO return User object, not int!
     //Query User, returning User object
@@ -209,6 +208,7 @@ public class Datasource {
 
     //TODO updateStatus give opportunity to change TASK_DONE
     //TODO queryTask to list
+    //TODO Add authentication if it is possible in SQLite
 
 
 }
