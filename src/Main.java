@@ -7,9 +7,9 @@ public class Main {
     public static void main(String[] args) {
         Datasource datasource = new Datasource();
         datasource.open();
-        datasource.createView();
 
-   /*    datasource.insertUser("Adrian","Lachociagowski");
+       // datasource.createView();
+    /*    datasource.insertUser("Adrian","Lachociagowski");
         datasource.insertUser("Jacek","Placek");
         datasource.insertUser("Dawid","Podsiadlo");
         datasource.insertUser("Krzysztof","Zalewski");
@@ -25,11 +25,11 @@ public class Main {
         datasource.insertTask("Miuosh","Borycki","Pierdolic to wszystko",false);
         datasource.insertTask("Miuosh","Borycki","Isc, ciagle isc",false);*/
         try {
-            for (Task task: datasource.queryTasks(datasource.queryUser("Piotr", "Zola")))
+            for (Task task: datasource.queryTasks(datasource.queryUser("Miuosh", "Borycki")))
                 System.out.println("ID: " + task.get_id() + " Description: " + task.getDescription() + " Task done?: " + task.isTaskDone() + " Create Date " + task.getCreateDate());
         }catch (SQLException e)
         {
-            System.out.println(e.getStackTrace());
+            System.out.println(e.getMessage());
         }
         datasource.close();
 

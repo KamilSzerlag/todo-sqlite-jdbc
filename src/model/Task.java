@@ -1,11 +1,11 @@
 package model;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 public class Task {
     private int _id;
     private String description;
-    private LocalDateTime createDate;
+    private Date createDate;
     private boolean taskDone = false;
     private int user;
 
@@ -33,11 +33,11 @@ public class Task {
         this.description = description;
     }
 
-    public LocalDateTime getCreateDate() {
+    public Date getCreateDate() {
         return createDate;
     }
 
-    public void setCreateDate(LocalDateTime createDate) {
+    public void setCreateDate(Date createDate) {
         this.createDate = createDate;
     }
 

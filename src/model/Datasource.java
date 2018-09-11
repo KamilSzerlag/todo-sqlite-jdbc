@@ -1,7 +1,6 @@
 package model;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,13 +23,13 @@ public class Datasource {
     public static final String COLUMN_TASKS_CREATE_DATE = "create_date";
     public static final String COLUMN_TASK_USER = "user";
     public static final int INDEX_TASK_ID = 1;
-    public static final int INDEX_TASK_NAME = 2;
+    public static final int INDEX_TASK_DESCRIPTION = 2;
     public static final int INDEX_TASK_DONE = 3;
     public static final int INDEX_TASK_CREATE_DATE = 4;
     public static final int INDEX_TASK_USER = 5;
 
     public static final String CREATE_USERS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_USERS + "( " + COLUMN_USERS_ID + " integer PRIMARY KEY , " + COLUMN_USERS_NAME + " text , " + COLUMN_USERS_SURNAME + " text " + ")";
-    public static final String CREATE_TASKS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_TASKS + "(" + COLUMN_TASKS_ID + " integer PRIMARY KEY , " + COLUMN_TASKS_DESCRIPTION + " text , " + COLUMN_TASKS_DONE + " integer ," + COLUMN_TASKS_CREATE_DATE + " text TIMESTAMP ," + COLUMN_TASK_USER + " integer )";
+    public static final String CREATE_TASKS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_TASKS + "(" + COLUMN_TASKS_ID + " integer PRIMARY KEY , " + COLUMN_TASKS_DESCRIPTION + " text , " + COLUMN_TASKS_DONE + " integer ," + COLUMN_TASKS_CREATE_DATE + " TIMESTAMP ," + COLUMN_TASK_USER + " integer )";
 
     public static final String INSERT_USER = "INSERT INTO " + TABLE_USERS + "( " + COLUMN_USERS_NAME + ", " + COLUMN_USERS_SURNAME + ") " + " VALUES(?, ?)";
     public static final String INSERT_TASK = "INSERT INTO " + TABLE_TASKS + "( " + COLUMN_TASKS_DESCRIPTION + ", " + COLUMN_TASKS_DONE + ", " + COLUMN_TASKS_CREATE_DATE + ", " + COLUMN_TASK_USER + ") " + " VALUES(?, ?, ?, ?)";
@@ -39,7 +38,7 @@ public class Datasource {
 
     public static final String TASK_USER_VIEW = "task_user_view";
 
-    public static final String CREATE_TASK_USER_VIEW = "CREATE VIEW IF NOT EXISTS " + TASK_USER_VIEW + " AS SELECT " + COLUMN_TASKS_DESCRIPTION + ", " + COLUMN_TASKS_DONE + ", " + COLUMN_TASKS_CREATE_DATE + ", " + COLUMN_USERS_NAME + ", " + COLUMN_USERS_SURNAME + " FROM " + TABLE_TASKS + " INNER JOIN " + TABLE_USERS + " ON " + TABLE_TASKS + "." + COLUMN_TASK_USER + " = " + TABLE_USERS + "." + COLUMN_USERS_ID;
+    public static final String CREATE_TASK_USER_VIEW = "CREATE VIEW IF NOT EXISTS " + TASK_USER_VIEW + " AS SELECT " + TABLE_TASKS + "." + COLUMN_TASKS_ID + " , " + COLUMN_TASKS_DESCRIPTION + ", " + COLUMN_TASKS_DONE + ", " + COLUMN_TASKS_CREATE_DATE + ", " + TABLE_TASKS + "." + COLUMN_TASK_USER + ", " + TABLE_USERS + "." + COLUMN_USERS_NAME + ", " + TABLE_USERS + "." + COLUMN_USERS_SURNAME + " FROM " + TABLE_TASKS + " INNER JOIN " + TABLE_USERS + " ON " + TABLE_TASKS + "." + COLUMN_TASK_USER + " = " + TABLE_USERS + "." + COLUMN_USERS_ID;
     //+ " WHERE " + TABLE_USERS + "." + COLUMN_USERS_NAME + " = ?  " + " AND " + TABLE_USERS + "." + COLUMN_USERS_SURNAME + " =  ? ";
     public static final String QUERY_USER_TASKS = "SELECT * FROM " + TASK_USER_VIEW + " WHERE " + TASK_USER_VIEW + "." + COLUMN_USERS_NAME + " = ? AND " + TASK_USER_VIEW + "." + COLUMN_USERS_SURNAME + " = ?";
 
@@ -65,11 +64,12 @@ public class Datasource {
             insertIntoTask = conn.prepareStatement(INSERT_TASK, Statement.RETURN_GENERATED_KEYS);
             queryFromUser = conn.prepareStatement(QUERY_USER);
             createTaskUserView = conn.prepareStatement(CREATE_TASK_USER_VIEW);
-            queryUserTasks = conn.prepareStatement(QUERY_USER_TASKS,Statement.RETURN_GENERATED_KEYS);
+            queryUserTasks = conn.prepareStatement(QUERY_USER_TASKS);
             System.out.println("Connection successful with DB");
             return true;
         } catch (SQLException e) {
             System.out.println("Couldn't connect with DB " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
 
@@ -131,12 +131,13 @@ public class Datasource {
 
     //TODO insertTask
     public int insertTask(String name, String surname, String description, Boolean taskDone) {
+
         try {
             User foundedUser = queryUser(name, surname);
             if (foundedUser != null) {
                 insertIntoTask.setString(1, description);
                 insertIntoTask.setBoolean(2, taskDone);
-                insertIntoTask.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
+                insertIntoTask.setTimestamp(3, new Timestamp(new java.util.Date().getTime()));
                 insertIntoTask.setInt(4, foundedUser.get_id());
                 insertIntoTask.execute();
                 System.out.println("Task Added!");
@@ -161,29 +162,29 @@ public class Datasource {
             System.out.println("Sorry, couldn't create view" + e.getMessage());
         }
     }
+
     //TODO query Tasks for selected user
+    //TODO fixing parser for date format
     public List<Task> queryTasks(User user) throws SQLException {
         List<Task> tempTasks = new ArrayList<>();
-        Task tempTask = new Task();
         if (user != null) {
             try {
                 queryUserTasks.setString(1, user.getName());
                 queryUserTasks.setString(2, user.getSurname());
                 ResultSet resultTasks = queryUserTasks.executeQuery();
-                ResultSet rsk = queryUserTasks.getGeneratedKeys();
                 while (resultTasks.next()) {
-                    tempTask.set_id(rsk.getInt(1));
+                    Task tempTask = new Task();
+                    tempTask.set_id(resultTasks.getInt(COLUMN_TASKS_ID));
                     tempTask.setDescription(resultTasks.getString(COLUMN_TASKS_DESCRIPTION));
-                    //tempTask.setCreateDate(resultTasks.getTimestamp(COLUMN_TASKS_CREATE_DATE).toLocalDateTime());
-                    tempTask.setCreateDate(LocalDateTime.now());
+                    tempTask.setCreateDate(resultTasks.getTimestamp(COLUMN_TASKS_CREATE_DATE));
                     tempTask.setTaskDone(resultTasks.getBoolean(COLUMN_TASKS_DONE));
                     tempTask.setUser(resultTasks.getInt(COLUMN_TASK_USER));
                     tempTasks.add(tempTask);
-                    System.out.println("ID: "+tempTask.get_id()+" Description: "+tempTask.getDescription()+" Task done?: "+tempTask.isTaskDone()+" Create Date "+tempTask.getCreateDate());
                 }
                 return tempTasks;
             } catch (SQLException e) {
-                System.out.println("Sorry, can't query tasks " +e.getMessage());
+                System.out.println("Sorry, can't query tasks " + e.getMessage());
+                System.out.println(e.getStackTrace());
                 return null;
 
             }
